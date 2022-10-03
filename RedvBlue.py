@@ -7,13 +7,15 @@ num_edges = 70
 
 g = ig.Graph.Erdos_Renyi(n=num_greens, m=num_edges) # random graph
 
-g.add_vertices(2)
+g.add_vertices(3)
+
+g.vs[-3]['colour'] = 'grey'
 
 g.vs[-2]['colour'] = 'red'
-                                    # red and blue node arent connected to any green nodes currently.... might not need to be
+                                    # grey, red and blue nodes arent connected to any green nodes currently.... might not need to be
 g.vs[-1]['colour'] = 'blue'
 
-for i in range(len(g.vs)-2):
+for i in range(len(g.vs)-3):
     g.vs[i]['colour'] = 'green'
 
 # initialising attributes
@@ -26,6 +28,9 @@ for i in g.vs:
         i['energy'] = 100
     if i['colour'] == 'red':
         i['followers'] = num_greens
+    if i['colour'] == 'grey':
+        i['count'] = 0
+        i['loyalty'] = random.uniform(-1.0, 1.0)
 
 
 def green_talk(g):
@@ -72,6 +77,24 @@ def blue_talk(g, blue_msg):
                 i['uncertainty'] = 0.0                          # caps the uncertainty at the minimum (0.0)
     return g
 
+# similar implementation to R/B msg, with only one potent msg
+grey_msg = {1:-1.0, 2:1.0}
+
+# determines if the grey agent is loyal, and applies the appropriate msg, at no cost
+def grey_talk(g, grey_msg):
+    if i['count'] <= 10:
+        if i['loyalty'] >= 0:
+            for i in g.vs:
+                if i['colour'] == 'green':
+                    i['uncertainty'] += grey_msg[1]
+        elif i['loyalty'] < 0:
+            for i in g.vs:
+                if i['colour'] == 'green':
+                    i['uncertainty'] += grey_msg[2]
+    i['count'] += 1
+    return g
+
+
 def printGraph(g):
     for i in g.vs:
         print(i)
@@ -80,6 +103,7 @@ def round(g):
     green_talk(g)
     red_talk(g, red_msg)
     blue_talk(g, blue_msg)
+    # OR grey_talk based on user input
     return g
 
 def get_votes(g):
