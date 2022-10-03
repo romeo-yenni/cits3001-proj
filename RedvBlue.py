@@ -91,9 +91,15 @@ def blue_talk(g, blue_msg):
     for i in g.vs:
         if i['colour'] == 'green':
             msg = random.randint(1, 10)                        # just picks a message randomly
-            i['uncertainty'] += blue_msg[msg]
-            if i['uncertainty'] < 0.0:
-                i['uncertainty'] = 0.0                          # caps the uncertainty at the minimum (0.0)
+            energy_cost = 15*red_msg[msg]
+            if i['energy'] + energy_cost < 0:                      # arbitrary turn energy cost. Will not allow consecuptive potent msgs (100+[15*-1])x10 = -50. 
+                print("You do not have enough energy for that!")    # must use greys to capture max potency.
+                break
+            else:
+                i['energy'] += energy_cost
+                i['uncertainty'] += blue_msg[msg]                  
+                if i['uncertainty'] < 0.0:
+                    i['uncertainty'] = 0.0                          # caps the uncertainty at the minimum (0.0)
     return g
 
 # similar implementation to R/B msg, with only one potent msg
