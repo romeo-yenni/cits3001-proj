@@ -101,10 +101,14 @@ def grey_talk(g, grey_msg):
             for i in g.vs:
                 if i['colour'] == 'green':
                     i['uncertainty'] += grey_msg[1]
-        elif i['loyalty'] < 0:
+                    if i['uncertainty'] < 0.0:
+                        i['uncertainty'] = 0.0        
+        if i['loyalty'] < 0:
             for i in g.vs:
                 if i['colour'] == 'green':
                     i['uncertainty'] += grey_msg[2]
+                    if i['uncertainty'] > 1.0:
+                        i['uncertainty'] = 1.0 
     i['count'] += 1
     return g
 
