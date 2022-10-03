@@ -19,7 +19,7 @@ for i in range(len(g.vs)-2):
 # initialising attributes
 for i in g.vs:
     if i['colour'] == 'green':
-        i['opinion'] = random.uniform(-1.0, 1.0)
+        i['opinion'] = random.choice([0, 1])
         i['uncertainty'] = random.uniform(0.0, 1.0)
         i['following'] = True                                       # every green starts off following red. 
     if i['colour'] == 'blue':
@@ -32,6 +32,13 @@ def green_talk(g):
     for i in g.vs:
         if i['colour'] == 'green':
             j = random.choice(i.neighbors())
+
+            if i['uncertainty'] < j['uncertainty']:                          # now does deos an opinion change
+                j['opinion'] = opinion_change(j)                         # flips the node with greater uncertainty
+            if i['uncertainty'] > j['uncertainty']:
+                i['opinion'] = opinion_change(i)                         # flips the node with greater uncertainty
+
+
             diff = mod_uncertainty(i, j)                            # right now changing uncertainty but i think should be changing opinion.
             if i['uncertainty'] > j['uncertainty']:
                 j['uncertainty'] += diff
@@ -44,6 +51,13 @@ def green_talk(g):
 
 def mod_uncertainty(i, j):
     return abs( (i['uncertainty'] - j['uncertainty']) / 5 )
+
+def opinion_change(node):
+    if node['opinion'] == 0:
+        return 1
+    else:
+        return 0
+
 
 
 # message dictionaries full of uncertainties
@@ -87,7 +101,7 @@ def get_votes(g):
     not_voting = 0
     for i in g.vs:
         if i['colour'] == 'green':
-            if i['opinion'] > 0:
+            if i['opinion'] == 1:
                 voting += 1                     # needs to think about what happens if voting/not
             else:                               # are equal, right now if they are equal 
                 not_voting += 1                 # red wins.
@@ -100,7 +114,7 @@ def get_votes(g):
 
 def main():
     clock = 0
-    while clock < 10:
+    while clock < 100:
         round(g)
         v, nv, winning = get_votes(g)
         print("after the round, " + winning + " is winning")
