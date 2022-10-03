@@ -72,13 +72,18 @@ blue_msg = {1:-0.1, 2:-0.2, 3:-0.3, 4:-0.4, 5:-0.5, 6:-0.6, 7:-0.7, 8:-0.8, 9:-0
 
 # need to implement loss of followers
 def red_talk(g, red_msg):                                           # need to think of how red will lose followers
-    for i in g.vs:
-        if i['colour'] == 'green':
+    for i in g.vs:                                                      # possible way potency/uncertainty = %lose.
+        if i['colour'] == 'green':                                      # highly potent/uncertain (1/0.1) evaluates to 10
+            if i['following'] == False:                                 # unpotent/certain evaluates to 0.1
+                continue                                                # if greater than or equal to 5 potent msg will put off the consumer
+            msg = random.randint(1, 10)
             if i['following'] == True:
-                msg = random.randint(1, 10)                        # just picks a message randomly
-                i['uncertainty'] += red_msg[msg]
-                if i['uncertainty'] > 1.0:
-                    i['uncertainty'] = 1.0                          # caps the uncertainty at the maximum (1.0)
+                if i['uncertainty']/red_msg[msg] >= 5:                  #this just picks midpoint, will try to make more continuous
+                    i['following'] = False
+                else:                                               # just picks a message randomly
+                    i['uncertainty'] += red_msg[msg]
+                    if i['uncertainty'] > 1.0:
+                        i['uncertainty'] = 1.0                      # caps the uncertainty at the maximum (1.0)
     return g
 
 # need to implement loss of energy
