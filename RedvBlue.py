@@ -66,8 +66,6 @@ def opinion_change(node):
     else:
         return 0
 
-
-
 # message dictionaries full of uncertainties
 red_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4, 5:0.5, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.0}               # red increases uncertainty (+ve)
                                                                                                 # not sure if this is the right idea.
@@ -81,12 +79,15 @@ def red_talk(g, red_msg, red_agent):                                    # need t
                 continue                                                # if greater than or equal to 5 potent msg will put off the consumer
             msg = random.randint(1, 10)
             if i['following'] == True:
+                i['uncertainty'] += red_msg[msg]
+                if i['uncertainty'] > 1.0:
+                    i['uncertainty'] = 1.0
                 if i['uncertainty']/red_msg[msg] >= 5:                  #this just picks midpoint, will try to make more continuous
                     i['following'] = False
-                else:                                               # just picks a message randomly
-                    i['uncertainty'] += red_msg[msg]
-                    if i['uncertainty'] > 1.0:
-                        i['uncertainty'] = 1.0                      # caps the uncertainty at the maximum (1.0)
+            else:                                               # just picks a message randomly
+                i['uncertainty'] += red_msg[msg]
+                if i['uncertainty'] > 1.0:
+                    i['uncertainty'] = 1.0                      # caps the uncertainty at the maximum (1.0)
     return g
 
 def blue_talk(g, blue_msg, blue_agent):
