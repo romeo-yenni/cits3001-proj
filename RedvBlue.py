@@ -1,9 +1,8 @@
 import igraph as ig
 import random
-import matplotlib.pyplot as plt
 
 num_greens = 20
-num_edges = 70
+num_edges = 4*num_greens
 
 g = ig.Graph.Erdos_Renyi(n=num_greens, m=num_edges) # random graph
 
@@ -14,6 +13,10 @@ g.vs[-3]['colour'] = 'grey'
 g.vs[-2]['colour'] = 'red'
                                     # grey, red and blue nodes arent connected to any green nodes currently.... might not need to be
 g.vs[-1]['colour'] = 'blue'
+
+red_agent = g.vs[-2]
+                                    # varibles to access either agent        
+blue_agent = g.vs[-1]
 
 for i in range(len(g.vs)-3):
     g.vs[i]['colour'] = 'green'
@@ -27,7 +30,7 @@ for i in g.vs:
     if i['colour'] == 'blue':
         i['energy'] = 100
     if i['colour'] == 'red':
-        i['followers'] = num_greens
+        i['followers'] = num_greens             # might just get rid of this
     if i['colour'] == 'grey':
         i['count'] = 0
         i['loyalty'] = random.uniform(-1.0, 1.0)
@@ -71,7 +74,7 @@ red_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4, 5:0.5, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.0
 blue_msg = {1:-0.1, 2:-0.2, 3:-0.3, 4:-0.4, 5:-0.5, 6:-0.6, 7:-0.7, 8:-0.8, 9:-0.9, 10:-1.0}    # blue decreases uncertainty (-ve)
 
 # need to implement loss of followers
-def red_talk(g, red_msg):                                           # need to think of how red will lose followers
+def red_talk(g, red_msg, red_agent):                                    # need to think of how red will lose followers
     for i in g.vs:                                                      # possible way potency/uncertainty = %lose.
         if i['colour'] == 'green':                                      # highly potent/uncertain (1/0.1) evaluates to 10
             if i['following'] == False:                                 # unpotent/certain evaluates to 0.1
@@ -86,21 +89,21 @@ def red_talk(g, red_msg):                                           # need to th
                         i['uncertainty'] = 1.0                      # caps the uncertainty at the maximum (1.0)
     return g
 
-# need to implement loss of energy
-def blue_talk(g, blue_msg):
-    for i in g.vs:
-        if i['colour'] == 'green':
-            msg = random.randint(1, 10)                        # just picks a message randomly
-            energy_cost = 15*red_msg[msg]
-            if i['energy'] + energy_cost < 0:                      # arbitrary turn energy cost. Will not allow consecuptive potent msgs (100+[15*-1])x10 = -50. 
-                print("You do not have enough energy for that!")    # must use greys to capture max potency.
-                break
-            else:
-                i['energy'] += energy_cost
+def blue_talk(g, blue_msg, blue_agent):
+    msg = random.randint(1, 10)                        # just picks a message randomly
+    energy_cost = 5*blue_msg[msg]
+    if blue_agent['energy'] + energy_cost < 0:                      # arbitrary turn energy cost. Will not allow consecuptive potent msgs (100+[15*-1])x10 = -50. 
+        print("You do not have enough energy for that!")            # must use greys to capture max potency.
+        return g
+    else:
+        blue_agent['energy'] += energy_cost
+        for i in g.vs:
+            if i['colour'] == 'green':
+                msg = random.randint(1, 10)
                 i['uncertainty'] += blue_msg[msg]                  
-                if i['uncertainty'] < 0.0:
-                    i['uncertainty'] = 0.0                          # caps the uncertainty at the minimum (0.0)
-    return g
+                if i['uncertainty'] < 0.0:                           # caps the uncertainty at the minimum (0.0)
+                    i['uncertainty'] = 0.0
+        return g
 
 # similar implementation to R/B msg, with only one potent msg
 grey_msg = {1:-1.0, 2:1.0}
@@ -130,8 +133,8 @@ def printGraph(g):
 
 def round(g):
     green_talk(g)
-    red_talk(g, red_msg)
-    blue_talk(g, blue_msg)
+    red_talk(g, red_msg, red_agent)
+    blue_talk(g, blue_msg, blue_agent)
     # OR grey_talk based on user input
     return g
 
@@ -151,14 +154,33 @@ def get_votes(g):
 
     return voting, not_voting, winning
 
+def blue_loss(blue_agent):
+    if blue_agent['energy'] == 0:
+        print("GAME OVER, blue agent ran out of energy.")
+        return True
+
+def red_followers():
+    total = 0
+    for i in g.vs:
+        if i['colour'] == 'green':
+            if i['following']:
+                total += 1
+    return total
+
 def main():
     clock = 0
-    while clock < 100:
+    while clock < 50:
+        print(blue_agent['energy'])
+        print(red_followers())
         round(g)
         v, nv, winning = get_votes(g)
         print("after the round, " + winning + " is winning")
         print("after the round, " + winning + " is winning")
         clock += 1
+        if blue_loss(blue_agent):
+            winning = 'red'
+            break
+            
     print(winning + " agent won")
 
 
