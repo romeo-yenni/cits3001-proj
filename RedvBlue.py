@@ -35,24 +35,34 @@ for i in g.vs:
         i['count'] = 0
         i['loyalty'] = random.uniform(-1.0, 1.0)
 
+for i in g.vs:
+    if i['colour'] == 'green':
+        g.add_edge(red_agent, i)
+        g.add_edge(blue_agent, i)
+
+def pick_neighbour(i):
+    return random.choice(i.neighbors())
+
 
 def green_talk(g):
     for i in g.vs:
         if i['colour'] == 'green':
-            j = random.choice(i.neighbors())
+            j = random.choice(i.neighbors())                             # picks a random connected node (neighbour)
+            while j['colour'] != 'green':
+                j = pick_neighbour(i)
 
-            if i['uncertainty'] < j['uncertainty']:                          # now does deos an opinion change
+            if i['uncertainty'] < j['uncertainty']:                      # now does an opinion change
                 j['opinion'] = opinion_change(j)                         # flips the node with greater uncertainty
             if i['uncertainty'] > j['uncertainty']:
-                i['opinion'] = opinion_change(i)                         # flips the node with greater uncertainty
+                i['opinion'] = opinion_change(i)                     
 
 
-            diff = mod_uncertainty(i, j)                            # right now changing uncertainty but i think should be changing opinion.
+            diff = mod_uncertainty(i, j)                          
             if i['uncertainty'] > j['uncertainty']:
                 j['uncertainty'] += diff
                 i['uncertainty'] -= diff
                                                                     # right now just had a basic change in uncertainty
-            if i['uncertainty'] < j['uncertainty']:                 # picks a random connected node (neighbour)
+            if i['uncertainty'] < j['uncertainty']:                 
                 i['uncertainty'] += diff                            # essentially brings the 2 uncertainties closer together
                 j['uncertainty'] -= diff                            # will need to create a more complex equation later
     return g
@@ -94,7 +104,7 @@ def blue_talk(g, blue_msg, blue_agent):
     msg = random.randint(1, 10)                        # just picks a message randomly
     energy_cost = 5*blue_msg[msg]
     if blue_agent['energy'] + energy_cost < 0:                      # arbitrary turn energy cost. Will not allow consecuptive potent msgs (100+[15*-1])x10 = -50. 
-        print("You do not have enough energy for that!")            # must use greys to capture max potency.
+        #print("You do not have enough energy for that!")            # must use greys to capture max potency.
         return g
     else:
         blue_agent['energy'] += energy_cost
@@ -145,13 +155,15 @@ def get_votes(g):
     for i in g.vs:
         if i['colour'] == 'green':
             if i['opinion'] == 1:
-                voting += 1                     # needs to think about what happens if voting/not
-            else:                               # are equal, right now if they are equal 
-                not_voting += 1                 # red wins.
-    if voting > not_voting:
+                voting += 1                     
+            else:                              
+                not_voting += 1               
+    if voting > not_voting:                     
         winning = 'blue'
-    else:
+    elif voting < not_voting:
         winning = 'red'
+    else:
+        winning = 'neither'
 
     return voting, not_voting, winning
 
@@ -170,13 +182,12 @@ def red_followers():
 
 def main():
     clock = 0
+    v, nv, winning = get_votes(g)
+    print("BEFORE START OF SIMULATION " + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
     while clock < 50:
-        print(blue_agent['energy'])
-        print(red_followers())
         round(g)
         v, nv, winning = get_votes(g)
-        print("after the round, " + winning + " is winning")
-        print("after the round, " + winning + " is winning")
+        print("Round " + str(clock) + ":\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
         clock += 1
         if blue_loss(blue_agent):
             winning = 'red'
@@ -191,4 +202,4 @@ main()
 
 color_dict = {"green": "green", "red": "red", "blue": "blue", "grey": "grey"}
 
-#ig.plot(g, vertex_color=[color_dict[colour] for colour in g.vs["colour"]])
+ig.plot(g, vertex_color=[color_dict[colour] for colour in g.vs["colour"]])
