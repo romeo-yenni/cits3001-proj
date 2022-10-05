@@ -40,6 +40,10 @@ for i in g.vs:
         g.add_edge(red_agent, i)
         g.add_edge(blue_agent, i)
 
+for i in g.es:
+    if i.target == red_agent.index or i.target == blue_agent.index:
+        i['uncertainty'] = 0.5
+
 def pick_neighbour(i):
     return random.choice(i.neighbors())
 
@@ -196,7 +200,7 @@ def main():
     print(winning + " agent won")
 
 
-main()
+#main()
 
 #printGraph(g)
 
