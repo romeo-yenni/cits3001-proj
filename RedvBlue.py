@@ -1,6 +1,12 @@
 import igraph as ig
 import random
 
+def user():
+    play = input("Type 1 to play, or 2 to observe...\n--> ")
+    if play == "1":
+        total_grn = int(input("How many greens in this simulation?\n--> "))
+        return total_grn
+
 num_greens = 20
 num_edges = 4*num_greens
 
@@ -11,7 +17,7 @@ g.add_vertices(3)
 g.vs[-3]['colour'] = 'grey'
 
 g.vs[-2]['colour'] = 'red'
-                                    # grey, red and blue nodes arent connected to any green nodes currently.... might not need to be
+                                    # grey arent connected to any green nodes currently.... might not need to be
 g.vs[-1]['colour'] = 'blue'
 
 red_agent = g.vs[-2]
@@ -41,12 +47,12 @@ for i in g.vs:
         g.add_edge(blue_agent, i)
 
 for i in g.es:
-    if i.target == red_agent.index or i.target == blue_agent.index:
-        i['uncertainty'] = 0.5
+    if i.target == red_agent.index or i.target == blue_agent.index:             # might not need this for blue
+        i['uncertainty'] = 0.5                                                  # just for red probably
+        i['history'] = []
 
 def pick_neighbour(i):
     return random.choice(i.neighbors())
-
 
 def green_talk(g):
     for i in g.vs:
@@ -185,9 +191,10 @@ def red_followers():
     return total
 
 def main():
+    play = user()
     clock = 0
     v, nv, winning = get_votes(g)
-    print("BEFORE START OF SIMULATION " + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
+    print("BEFORE START OF SIMULATION\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
     while clock < 50:
         round(g)
         v, nv, winning = get_votes(g)
@@ -206,4 +213,4 @@ def main():
 
 color_dict = {"green": "green", "red": "red", "blue": "blue", "grey": "grey"}
 
-ig.plot(g, vertex_color=[color_dict[colour] for colour in g.vs["colour"]])
+#ig.plot(g, vertex_color=[color_dict[colour] for colour in g.vs["colour"]])
