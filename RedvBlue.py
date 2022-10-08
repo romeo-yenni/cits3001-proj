@@ -1,5 +1,6 @@
 import igraph as ig
 import random
+import copy
 
 def user():
     play = input("Type 1 to play, or 2 to observe...\n--> ")
@@ -302,6 +303,56 @@ def main():
             
     print(winning + " agent won")
 
+#A better evaluation function would be to focus on combatting the uncertainty red is aiming to introduce, as maximum uncertainty is really their win condition.
+def eval_func_uncertainty(graph):
+    if blue_loss(blue_agent):
+        return float("Inf")
+    if red_followers(red_agent) == 0:
+        return -float("Inf")
+
+#an evaluation function that returns a value determining who is winning in a given state of the graph based on the difference in voting
+def eval_func_voting(graph):
+    if blue_loss(blue_agent):
+        return float("Inf")
+    if red_followers(red_agent) == 0:
+        return -float("Inf")
+    v, nv, winning = get_votes(graph)
+    return nv - v
+
+#a function to run minimax on a given graph
+def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):                                  #green_talk needs to go in here at some point, currently just plays red_talk() then blue_talk()
+    if blue_loss(blue_agent) or depth == 0:
+        return [eval_func(graph), ""]
+    if is_maximizing:
+        best_value = -float("Inf")
+        moves = red_msg
+        best_move = move[0]
+        for move in moves:
+            new_graph = copy.deepcopy(graph)
+            red_talk(move)
+            hypothetical_value = minimax(new_graph, False, depth - 1, alpha, beta, eval_func)[0]
+            if hypothetical_value > best_value:
+                best_move = move
+            alpha = max(alpha, best_value)
+            if alpha >= beta:
+                break
+            return best_move
+    else:
+        best_value = float("Inf")
+        moves = blue_msg
+        best_move = moves[0]
+        for move in moves:
+            new_graph = copy.deepcopy(graph)
+            blue_talk(move)
+            hypothetical_value = minimax(new_graph, True, depth - 1, alpha, beta, eval_func)[0]
+            if hypothetical_value < best_value:
+                best_move = move
+            beta = min(beta, best_value)
+            if alpha >= beta:
+                break
+            return best_move 
+
+# No consideration of the costs of their actions at the moment, next step to add this
 
 main()
 
