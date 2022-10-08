@@ -293,7 +293,7 @@ def main():
     v, nv, winning = get_votes(g)
     print("BEFORE START OF SIMULATION\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
     while clock < 50:
-        round(g)
+        round(g) #minimax(g, True, 50, alpha, beta, eval_func_voting)
         v, nv, winning = get_votes(g)
         print("Round " + str(clock) + ":\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
         clock += 1
