@@ -82,17 +82,32 @@ def green_talk(g):
     for i in g.vs:
         if i['colour'] == 'green':
             j = random.choice(i.neighbors())
-            max = max_unc(i, j)
-            if max == 1:
-                diff = i['uncertainty'] - j['uncertainty']
-                i['uncertainty'] = i['uncertainty'] - (diff*0.5)
-                if diff > 0.5:
-                    i['opinion'] = opinion_change(i)
-            elif max == -1:
-                diff = j['uncertainty'] - i['uncertainty']
-                j['uncertainty'] = j['uncertainty'] - (diff*0.5)
-                if diff > 0.5:
-                    j['opinion'] = opinion_change(j)
+            if i['opinion'] == j['opinion']:
+                max = max_unc(i, j)
+                if max == 1:
+                    diff = i['uncertainty'] - j['uncertainty']
+                    i['uncertainty'] = i['uncertainty'] - (diff*0.25)
+                elif max == -1:
+                    diff = j['uncertainty'] - i['uncertainty']
+                    j['uncertainty'] = j['uncertainty'] - (diff*0.25)
+            else:
+                max = max_unc(i, j)
+                if max == 1:
+                    diff = i['uncertainty'] - j['uncertainty']
+                    if diff > 0.5:          # maybe make 0.55??
+                        i['opinion'] = opinion_change(i)
+                        i['uncertainty'] = i['uncertainty'] - (diff*0.25)
+                    else:
+                        i['uncertainty'] = i['uncertainty'] - (diff*0.25) # ?????
+                        j['uncertainty'] = j['uncertainty'] + (diff*0.25) # ?????
+                elif max == -1:
+                    diff = j['uncertainty'] - i['uncertainty']
+                    if diff > 0.5:
+                        j['opinion'] = opinion_change(j)
+                        j['uncertainty'] = j['uncertainty'] - (diff*0.25)
+                    else:
+                        j['uncertainty'] = j['uncertainty'] - (diff*0.5) # ?????
+                        i['uncertainty'] = i['uncertainty'] + (diff*0.25)
     return g
 
 
@@ -140,6 +155,8 @@ blue_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4, 5:0.5, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.
 
 def red_talk(g, red_msg, red_agent):
     msg = red_msg[random.randint(1, 10)]
+    print(str(red_followers()))
+    print("red msg level: " + str(msg))
     for i in g.vs:
         if i['colour'] == 'green':
             if i['following'] == True:
@@ -168,7 +185,7 @@ def red_0(msg, green):
         lost = True
         return green['uncertainty'], lost
     else:
-        return (green['uncertainty'] - 0.1*(msg)), lost
+        return (green['uncertainty'] - 0.5*(msg)), lost # 0.1*
 
 def red_1(msg, green):
     lost = False
@@ -177,7 +194,7 @@ def red_1(msg, green):
         lost = True
         return green['uncertainty'], lost
     else:
-        return (green['uncertainty'] + 0.1*(msg)), lost
+        return (green['uncertainty'] + 0.5*(msg)), lost # 0.1*
 
             
 
@@ -200,6 +217,7 @@ def red_1(msg, green):
 def blue_talk(g, blue_msg, blue_agent):
     msg = blue_msg[random.randint(1, 10)]
     energy_cost = 5*msg
+    print("blue msg level: " + str(msg) + ", energy cost: " + str(energy_cost))
     if blue_agent['energy'] - energy_cost < 0:
         return g
     else:
@@ -217,10 +235,10 @@ def blue_talk(g, blue_msg, blue_agent):
         return g
 
 def blue_0(msg, green):
-    return (green['uncertainty'] + 0.1*(msg))
+    return (green['uncertainty'] + 0.5*(msg)) # 0.1*
 
 def blue_1(msg, green):
-    return (green['uncertainty'] - 0.1*(msg))
+    return (green['uncertainty'] - 0.5*(msg)) # 0.1*
 
 
 # similar implementation to R/B msg, with only one potent msg
@@ -287,12 +305,18 @@ def red_followers():
                 total += 1
     return total
 
+def get_green_att():
+    for i in g.vs:
+        if i['colour'] == 'green':
+            print("id: " + str(i.index) + ", colour: " + i['colour'] + ", opinion: " + str(i['opinion']) + ", uncertainty: " + str(i['uncertainty']) + ", following: " + str(i['following']))
+
 def main():
     #play = user()
     clock = 0
     v, nv, winning = get_votes(g)
     print("BEFORE START OF SIMULATION\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
-    while clock < 50:
+    while clock < 30:
+        print(get_green_att())
         round(g) #minimax(g, True, 50, alpha, beta, eval_func_voting)
         v, nv, winning = get_votes(g)
         print("Round " + str(clock) + ":\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
