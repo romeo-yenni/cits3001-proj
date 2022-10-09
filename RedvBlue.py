@@ -1,3 +1,4 @@
+from cgitb import grey
 import igraph as ig
 import random
 import copy
@@ -24,6 +25,8 @@ g.vs[-1]['colour'] = 'blue'
 red_agent = g.vs[-2]
                                     # varibles to access either agent        
 blue_agent = g.vs[-1]
+
+grey_agent = g.vs[-3]
 
 for i in range(len(g.vs)-3):
     g.vs[i]['colour'] = 'green'
@@ -155,8 +158,6 @@ blue_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4, 5:0.5, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.
 
 def red_talk(g, red_msg, red_agent):
     msg = red_msg[random.randint(1, 10)]
-    print(str(red_followers()))
-    print("red msg level: " + str(msg))
     for i in g.vs:
         if i['colour'] == 'green':
             if i['following'] == True:
@@ -214,25 +215,27 @@ def red_1(msg, green):
 #                     i['uncertainty'] = 0.0
 #         return g
 
-def blue_talk(g, blue_msg, blue_agent):
-    msg = blue_msg[random.randint(1, 10)]
-    energy_cost = 5*msg
-    print("blue msg level: " + str(msg) + ", energy cost: " + str(energy_cost))
-    if blue_agent['energy'] - energy_cost < 0:
-        return g
+def blue_talk(g, blue_msg, blue_agent, active):
+    if active == True:
+        return grey_talk(g, grey_msg, grey_agent)
     else:
-        blue_agent['energy'] -= energy_cost
-        for i in g.vs:
-            if i['colour'] == 'green':
-                if i['opinion'] == 1:
-                    i['uncertainty'] = blue_1(msg, i)
-                    if i['uncertainty'] < 0:
-                        i['uncertainty'] = 0
-                else:
-                    i['uncertainty'] = blue_0(msg, i)
-                    if i['uncertainty'] > 1.0:
-                        i['uncertainty'] = 1.0
-        return g
+        msg = blue_msg[random.randint(1, 10)]
+        energy_cost = 5*msg
+        if blue_agent['energy'] - energy_cost < 0:
+            return g
+        else:
+            blue_agent['energy'] -= energy_cost
+            for i in g.vs:
+                if i['colour'] == 'green':
+                    if i['opinion'] == 1:
+                        i['uncertainty'] = blue_1(msg, i)
+                        if i['uncertainty'] < 0:
+                            i['uncertainty'] = 0
+                    else:
+                        i['uncertainty'] = blue_0(msg, i)
+                        if i['uncertainty'] > 1.0:
+                            i['uncertainty'] = 1.0
+            return g
 
 def blue_0(msg, green):
     return (green['uncertainty'] + 0.5*(msg)) # 0.1*
@@ -242,24 +245,37 @@ def blue_1(msg, green):
 
 
 # similar implementation to R/B msg, with only one potent msg
-grey_msg = {1:-1.0, 2:1.0}
+grey_msg = {1:1.0}
 
 # determines if the grey agent is loyal, and applies the appropriate msg, at no cost
-def grey_talk(g, grey_msg):
-    if i['count'] <= 10:
-        if i['loyalty'] >= 0:
+def grey_talk(g, grey_msg, grey_agent):
+    if grey_agent['count'] <= 5:
+        if grey_agent['loyalty'] >= 0:      # good agent
             for i in g.vs:
                 if i['colour'] == 'green':
-                    i['uncertainty'] += grey_msg[1]
-                    if i['uncertainty'] < 0.0:
-                        i['uncertainty'] = 0.0        
-        if i['loyalty'] < 0:
+                    if i['opinion'] == 1:
+                        i['uncertainty'] = blue_1(grey_msg[1], i)
+                        if i['uncertainty'] < 0:
+                            i['uncertainty'] = 0
+                    else:
+                        i['uncertainty'] = blue_0(grey_msg[1], i)
+                        if i['uncertainty'] > 1.0:
+                            i['uncertainty'] = 1.0        
+        else:                # bad agent
             for i in g.vs:
                 if i['colour'] == 'green':
-                    i['uncertainty'] += grey_msg[2]
-                    if i['uncertainty'] > 1.0:
-                        i['uncertainty'] = 1.0 
-    i['count'] += 1
+                    if i['following'] == True:
+                        if i['opinion'] == 1:
+                            unc, lost = red_1(grey_msg[1], i)
+                            i['uncertainty'] = unc
+                            if i['uncertainty'] > 1.0:
+                                i['uncertainty'] = 1.0
+                        else:
+                            unc, lost = red_0(grey_msg, i)
+                            i['uncertainty'] = unc
+                            if i['uncertainty'] < 0:
+                                i['uncertainty'] = 0
+    grey_agent['count'] += 1
     return g
 
 
@@ -270,7 +286,7 @@ def printGraph(g):
 def round(g):
     green_talk(g)
     red_talk(g, red_msg, red_agent)
-    blue_talk(g, blue_msg, blue_agent)
+    blue_talk(g, blue_msg, blue_agent, False) # last boolean for if grey activated or not....
     # OR grey_talk based on user input
     return g
 
@@ -316,7 +332,6 @@ def main():
     v, nv, winning = get_votes(g)
     print("BEFORE START OF SIMULATION\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
     while clock < 30:
-        print(get_green_att())
         round(g) #minimax(g, True, 50, alpha, beta, eval_func_voting)
         v, nv, winning = get_votes(g)
         print("Round " + str(clock) + ":\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
@@ -344,7 +359,7 @@ def eval_func_voting(graph):
     return nv - v
 
 #a function to run minimax on a given graph
-def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):                                  #green_talk needs to go in here at some point, currently just plays red_talk() then blue_talk()
+def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):      #green_talk needs to go in here at some point, currently just plays red_talk() then blue_talk()
     if blue_loss(blue_agent) or depth == 0:
         return [eval_func(graph), ""]
     if is_maximizing:
