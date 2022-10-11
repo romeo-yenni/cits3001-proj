@@ -1,4 +1,3 @@
-from cgitb import grey
 import igraph as ig
 import random
 import copy
@@ -58,29 +57,6 @@ for i in g.vs:
 def pick_neighbour(i):
     return random.choice(i.neighbors())
 
-# def green_talk(g):
-#     for i in g.vs:
-#         if i['colour'] == 'green':
-#             j = random.choice(i.neighbors())                             # picks a random connected node (neighbour)
-#             while j['colour'] != 'green':
-#                 j = pick_neighbour(i)
-
-#             if i['uncertainty'] < j['uncertainty']:                      # now does an opinion change
-#                 j['opinion'] = opinion_change(j)                         # flips the node with greater uncertainty
-#             if i['uncertainty'] > j['uncertainty']:
-#                 i['opinion'] = opinion_change(i)                         # need to chnage uncertainty after opinioin chnage    IMPORTANT!
-
-
-#             diff = mod_uncertainty(i, j)                          
-#             if i['uncertainty'] > j['uncertainty']:
-#                 j['uncertainty'] += diff
-#                 i['uncertainty'] -= diff
-#                                                                     # right now just had a basic change in uncertainty
-#             if i['uncertainty'] < j['uncertainty']:                 
-#                 i['uncertainty'] += diff                            # essentially brings the 2 uncertainties closer together
-#                 j['uncertainty'] -= diff                            # will need to create a more complex equation later
-#     return g
-
 def green_talk(g):
     for i in g.vs:
         if i['colour'] == 'green':
@@ -137,25 +113,6 @@ red_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4, 5:0.5, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.0
                                                                                                 # not sure if this is the right idea.
 blue_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4, 5:0.5, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.0}              # changed to same as red.....
 
-# # need to implement loss of followers
-# def red_talk(g, red_msg, red_agent):                                    # need to think of how red will lose followers
-#     for i in g.vs:                                                      # possible way potency/uncertainty = %lose.
-#         if i['colour'] == 'green':                                      # highly potent/uncertain (1/0.1) evaluates to 10
-#             if i['following'] == False:                                 # unpotent/certain evaluates to 0.1
-#                 continue                                                # if greater than or equal to 5 potent msg will put off the consumer
-#             msg = random.randint(1, 10)
-#             if i['following'] == True:
-#                 i['uncertainty'] += red_msg[msg]
-#                 if i['uncertainty'] > 1.0:
-#                     i['uncertainty'] = 1.0
-#                 if i['uncertainty']/red_msg[msg] >= 5:                  #this just picks midpoint, will try to make more continuous
-#                     i['following'] = False
-#             else:                                               # just picks a message randomly
-#                 i['uncertainty'] += red_msg[msg]
-#                 if i['uncertainty'] > 1.0:
-#                     i['uncertainty'] = 1.0                      # caps the uncertainty at the maximum (1.0)
-#     return g
-
 def red_talk(g, red_msg, red_agent):
     msg = red_msg[random.randint(1, 10)]
     for i in g.vs:
@@ -196,24 +153,6 @@ def red_1(msg, green):
         return green['uncertainty'], lost
     else:
         return (green['uncertainty'] + 0.5*(msg)), lost # 0.1*
-
-            
-
-# def blue_talk(g, blue_msg, blue_agent):
-#     msg = random.randint(1, 10)                                     # just picks a message randomly
-#     energy_cost = 5*blue_msg[msg]
-#     if blue_agent['energy'] + energy_cost < 0:                      # arbitrary turn energy cost. Will not allow consecuptive potent msgs (100+[15*-1])x10 = -50. 
-#         #print("You do not have enough energy for that!")           # must use greys to capture max potency.
-#         return g
-#     else:
-#         blue_agent['energy'] += energy_cost
-#         for i in g.vs:
-#             if i['colour'] == 'green':
-#                 msg = random.randint(1, 10)
-#                 i['uncertainty'] += blue_msg[msg]                  
-#                 if i['uncertainty'] < 0.0:                           # caps the uncertainty at the minimum (0.0)
-#                     i['uncertainty'] = 0.0
-#         return g
 
 def blue_talk(g, blue_msg, blue_agent, active):
     if active == True:
@@ -321,6 +260,7 @@ def red_followers():
                 total += 1
     return total
 
+# debugging
 def get_green_att():
     for i in g.vs:
         if i['colour'] == 'green':
@@ -391,9 +331,9 @@ def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):               
                 break
             return best_move
 
-def user_round(g):
+def user_round(g, clock, turn_limit, alpha, beta):
     while not clock > turn_limit and not blue_loss(blue_agent):
-        print_graph(g)
+        printGraph(g)
         moves = blue_msg
         print("Available moves: ", moves)
         choice = 100
@@ -413,15 +353,15 @@ def user_round(g):
                 print("Computer chose: ", result)
                 red_talk(result)
 
-def ai_round(g):
+def ai_round(g, clock, turn_limit, alpha, beta):
     while not clock > turn_limit and not blue_loss(blue_agent):                 # Condence to while_not_over()?
-        print_graph(g)
+        printGraph(g)
         blue_result = minimax(g, False, 50, alpha, beta, eval_func_voting)
-        blue_talk(choice)
+        #blue_talk(choice)          # need to change up blue talk so its a choice and not random
         
         if not clock > turn_limit and not blue_loss(blue_agent):                    
             red_result = minimax(g, True, 50, alpha, beta, eval_func_voting)
-            red_talk(result)
+            #red_talk(result)       # also chnage red talk to remove random choices
 
 # No consideration of the costs of their actions at the moment, next step to add this
 
