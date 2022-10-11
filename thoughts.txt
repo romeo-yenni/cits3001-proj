@@ -12,3 +12,86 @@ and then a greater uncertainty means a node is more like to change its opinion
 the project lookin a lot simpler now i guess.
 
 will need to change the code up a bit but it wont be very hard.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Introduction
+
+Explain your understanding of the game in one paragraph.
+
+Please note that throughout the report, you are allowed to add screenshots, graphs, equations and code snippets. 
+
+Assumptions
+State all your assumptions, including but not limited to: 
+
+1.	What is the interval of uncertainty in your project? What do-1,0,+1 represent?
+2.	How are you perceiving green nodes’ opinion? Do you perceive it as vote/not vote in election, or are you perceiving it as vote for blue/vote for red? 
+3.	Any other assumptions
+
+Selection and design of appropriate AI technology 
+
+Methodology
+
+1.	Describe and justify your methodology for this project, including 
+a.	which parameters are hard coded, 
+b.	which parameters are to be input at the start of the game and 
+c.	what type of methods you used to make your agents intelligent.
+
+Game Play
+1.	Explain in detail how the game is played?
+2.	How turns are organised?
+3.	How opinions and uncertainties are updated?
+4.	Etc.
+
+Implementation of the Agents
+1.	State main points about the implementation of agents. This heading is more focused on the code and how you made it efficient. 
+2.	How long the program takes to run a single turn with variable number of green agents. Report for both small and large number of green agents. 
+3.	Which programming language you used? Whether you followed an Object Oriented approach or not.
+4.	Which libraries you have used?
+5.	Etc. 
+
+Running the game
+How can a layman run your game? Provide the commands, and associated parameters needed with an example workflow of the game. 
+
+
+Agent Design
+This heading focuses on the architectural design of the agents in the game
+
+e.g.,
+Green Agents
+1.	Are you using a static network or a dynamic network?
+2.	Can we generate a network when the game start?
+3.	What type of underlying network model you are using?
+4.	Other properties of the network, e.g., is it weighed, can links be added or removed during the play?
+5.	Etc. 
+
+Red and blue agents
+1.	Describe your design of the message potency (a.k.a. uncertainty of red and blue nodes. )
+2.	Describe your method for changing the followers' number in case of red agent
+3.	Describe your method for changing the energy level of blue nodes (a.k.a. lifeline)
+4.	Other Pertinent points regarding the working of your agent
+
+Grey Agents
+Describe the working of the grey agents.
+
+Validation of Agents 
+1.	Report any tests you conducted to ensure the agents are doing the task they have been asked to do.
+Perform Various Simulations  for the following set of questions. 
+
+2.	How does the game change if you have a tight uncertainty interval at the beginning of the game?
+3.	How does the game change if you have a broad uncertainty interval at the beginning of the game?
+
+
+4.	Plot distribution of uncertainties for each of the above questions. 
+
+5.	In order for the Red agent to win (i.e., a higher number of green agents with the opinion “not vote”, and an uncertainty less than 0 (which means they are pretty certain about their choice)), what is the best strategy? 
+a.	Discuss and show with simulation results how many rounds the red agent needs in order to win. 
+6.	In order for the Blue agent to win (i.e., a higher number of green agents with an opinion “vote”, and an uncertainty less than 0 (which means they are pretty certain about their choice)), what is the best strategy? [
+a.	Discuss and show with simulation results how many rounds the blue agent needs in order to win. 
+b.	What impact did grey agents have on the simulation? Explain how did you test the impact of grey agents?
+Please note that for answering questions use your own mental model of how you implemented uncertainties if they are different from the specs
+
+Performance of Agent when playing with a human
+Does the agent run and performs at an excellent level with challenging play when the opponent is a human? Discuss your findings
+Visualisation
+Describe your visualisation methods with some screenshots
