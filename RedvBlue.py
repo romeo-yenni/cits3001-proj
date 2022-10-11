@@ -359,16 +359,16 @@ def eval_func_voting(graph):
     return nv - v
 
 #a function to run minimax on a given graph
-def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):      #green_talk needs to go in here at some point, currently just plays red_talk() then blue_talk()
+def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):                                  #green_talk needs to go in here at some point, currently just plays red_talk() then blue_talk()
     if blue_loss(blue_agent) or depth == 0:
-        return [eval_func(graph), ""]
+        return eval_func(graph)
     if is_maximizing:
         best_value = -float("Inf")
         moves = red_msg
         best_move = move[0]
         for move in moves:
             new_graph = copy.deepcopy(graph)
-            red_talk(move)
+            red_talk(move)                                                                         # want to do red_talk but only for one msg
             hypothetical_value = minimax(new_graph, False, depth - 1, alpha, beta, eval_func)[0]
             if hypothetical_value > best_value:
                 best_move = move
@@ -382,14 +382,46 @@ def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):      #green_ta
         best_move = moves[0]
         for move in moves:
             new_graph = copy.deepcopy(graph)
-            blue_talk(move)
+            blue_talk(move) # OR grey_talk()                                                        # want to do blue_talk but only for one msg
             hypothetical_value = minimax(new_graph, True, depth - 1, alpha, beta, eval_func)[0]
             if hypothetical_value < best_value:
                 best_move = move
             beta = min(beta, best_value)
             if alpha >= beta:
                 break
-            return best_move 
+            return best_move
+
+def user_round(g):
+    while not clock > turn_limit and not blue_loss(blue_agent):
+        print_graph(g)
+        moves = blue_msg
+        print("Available moves: ", moves)
+        choice = 100
+        good_move = False
+        while not good_move:
+            choice = input("Select a move:\n")
+            try:
+                move = int(choice)
+            except ValueError:
+                continue
+            if move in moves:
+                good_move = True
+            blue_talk(choice)
+           
+            if not clock > turn_limit and not blue_loss(blue_agent):
+                result = minimax(g, True, 50, alpha, beta, eval_func_voting)
+                print("Computer chose: ", result)
+                red_talk(result)
+
+def ai_round(g):
+    while not clock > turn_limit and not blue_loss(blue_agent):                 # Condence to while_not_over()?
+        print_graph(g)
+        blue_result = minimax(g, False, 50, alpha, beta, eval_func_voting)
+        blue_talk(choice)
+        
+        if not clock > turn_limit and not blue_loss(blue_agent):                    
+            red_result = minimax(g, True, 50, alpha, beta, eval_func_voting)
+            red_talk(result)
 
 # No consideration of the costs of their actions at the moment, next step to add this
 
