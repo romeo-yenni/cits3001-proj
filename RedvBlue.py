@@ -1,3 +1,4 @@
+from shutil import move
 import igraph as ig
 import random
 import copy
@@ -113,8 +114,10 @@ red_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4, 5:0.5, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.0
                                                                                                 # not sure if this is the right idea.
 blue_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4, 5:0.5, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.0}              # changed to same as red.....
 
-def red_talk(g, red_msg, red_agent):
-    msg = red_msg[random.randint(1, 10)]
+def red_talk(g, red_msg, move):
+    #msg = red_msg[move]
+    msg = red_msg[move]
+    #msg = red_msg[random.randint(1, 10)]
     for i in g.vs:
         if i['colour'] == 'green':
             if i['following'] == True:
@@ -154,11 +157,12 @@ def red_1(msg, green):
     else:
         return (green['uncertainty'] + 0.5*(msg)), lost # 0.1*
 
-def blue_talk(g, blue_msg, blue_agent, active):
+def blue_talk(g, blue_msg, move, blue_agent, active = False):
     if active == True:
         return grey_talk(g, grey_msg, grey_agent)
     else:
-        msg = blue_msg[random.randint(1, 10)]
+        msg = blue_msg[move]
+        #msg = blue_msg[random.randint(1, 10)]
         energy_cost = 5*msg
         if blue_agent['energy'] - energy_cost < 0:
             return g
@@ -222,12 +226,12 @@ def printGraph(g):
     for i in g.vs:
         print(i)
 
-def round(g):
-    green_talk(g)
-    red_talk(g, red_msg, red_agent)
-    blue_talk(g, blue_msg, blue_agent, False) # last boolean for if grey activated or not....
-    # OR grey_talk based on user input
-    return g
+# def round(g):
+#     green_talk(g)
+#     red_talk(g, red_msg, move)
+#     blue_talk(g, blue_msg, blue_agent, False) # last boolean for if grey activated or not....
+#     # OR grey_talk based on user input
+#     return g
 
 def get_votes(g):
     voting = 0
@@ -272,7 +276,9 @@ def main():
     v, nv, winning = get_votes(g)
     print("BEFORE START OF SIMULATION\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
     while clock < 30:
-        round(g) #minimax(g, True, 50, alpha, beta, eval_func_voting)
+        #round(g)
+        #minimax(g, True, 50, alpha, beta, eval_func_voting)
+        minimax(g, True, 50, -float("Inf"), float("Inf"), eval_func_voting)   
         v, nv, winning = get_votes(g)
         print("Round " + str(clock) + ":\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
         clock += 1
@@ -293,23 +299,24 @@ def eval_func_uncertainty(graph):
 def eval_func_voting(graph):
     if blue_loss(blue_agent):
         return float("Inf")
-    if red_followers(red_agent) == 0:
+    if red_followers() == 0:
         return -float("Inf")
     v, nv, winning = get_votes(graph)
     return nv - v
 
 #a function to run minimax on a given graph
-def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):                                  #green_talk needs to go in here at some point, currently just plays red_talk() then blue_talk()
+def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):       #green_talk needs to go in here at some point, currently just plays red_talk() then blue_talk()
     if blue_loss(blue_agent) or depth == 0:
         return eval_func(graph)
     if is_maximizing:
         best_value = -float("Inf")
         moves = red_msg
-        best_move = move[0]
+        best_move = moves[1]     # the msg dictionary start at '1'.... changed from '0'
         for move in moves:
             new_graph = copy.deepcopy(graph)
-            red_talk(move)                                                                         # want to do red_talk but only for one msg
-            hypothetical_value = minimax(new_graph, False, depth - 1, alpha, beta, eval_func)[0]
+            red_talk(graph, red_msg, move)
+            #red_talk(move)                                                       # want to do red_talk but only for one msg
+            hypothetical_value = minimax(new_graph, False, depth - 1, -float("Inf"), float("Inf"), eval_func)    #[0] - removed
             if hypothetical_value > best_value:
                 best_move = move
             alpha = max(alpha, best_value)
@@ -319,11 +326,12 @@ def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):               
     else:
         best_value = float("Inf")
         moves = blue_msg
-        best_move = moves[0]
+        best_move = moves[1]        # the msg dictionary start at '1'.... changed from '0'
         for move in moves:
             new_graph = copy.deepcopy(graph)
-            blue_talk(move) # OR grey_talk()                                                        # want to do blue_talk but only for one msg
-            hypothetical_value = minimax(new_graph, True, depth - 1, alpha, beta, eval_func)[0]
+            #blue_talk(move) # OR grey_talk()                       # want to do blue_talk but only for one msg
+            blue_talk(graph, blue_msg, move, blue_agent) # need to add 'active' to here (grey agent), blue_talk() defualts to False.
+            hypothetical_value = minimax(new_graph, True, depth - 1, -float("Inf"), float("Inf"), eval_func)    #[0] - removed  
             if hypothetical_value < best_value:
                 best_move = move
             beta = min(beta, best_value)
@@ -346,22 +354,22 @@ def user_round(g, clock, turn_limit, alpha, beta):
                 continue
             if move in moves:
                 good_move = True
-            blue_talk(choice)
+            blue_talk(g, blue_msg, choice, blue_agent) # need to add 'active' to here (grey agent), blue_talk() defualts to False.
            
             if not clock > turn_limit and not blue_loss(blue_agent):
-                result = minimax(g, True, 50, alpha, beta, eval_func_voting)
+                result = minimax(g, True, 50, -float("Inf"), float("Inf"), eval_func_voting)  
                 print("Computer chose: ", result)
-                red_talk(result)
+                red_talk(g, red_msg, result)
 
 def ai_round(g, clock, turn_limit, alpha, beta):
     while not clock > turn_limit and not blue_loss(blue_agent):                 # Condence to while_not_over()?
         printGraph(g)
-        blue_result = minimax(g, False, 50, alpha, beta, eval_func_voting)
-        #blue_talk(choice)          # need to change up blue talk so its a choice and not random
+        blue_result = minimax(g, False, 50, -float("Inf"), float("Inf"), eval_func_voting)   
+        #blue_talk(g, blue_msg, choice, blue_agent)          # need to change up blue talk so its a choice and not random
         
         if not clock > turn_limit and not blue_loss(blue_agent):                    
-            red_result = minimax(g, True, 50, alpha, beta, eval_func_voting)
-            #red_talk(result)       # also chnage red talk to remove random choices
+            red_result = minimax(g, True, 50, -float("Inf"), float("Inf"), eval_func_voting)   
+            #red_talk(g, red_agent, result, red_agent)
 
 # No consideration of the costs of their actions at the moment, next step to add this
 
