@@ -96,9 +96,10 @@ def opinion_change(node):
         return 0
 
 # message dictionaries full of uncertainties
-red_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4, 5:0.5, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.0}               # red increases uncertainty (+ve)
-                                                                                                # not sure if this is the right idea.
-blue_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4, 5:0.5, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.0}              # changed to same as red.....
+
+red_msg = {1:0.2, 2:0.4, 3:0.6, 4:0.8, 5:1.0}
+
+blue_msg = {1:0.2, 2:0.4, 3:0.6, 4:0.8, 5:1.0}
 
 def red_talk(g, red_msg, move):
     msg = red_msg[move]
