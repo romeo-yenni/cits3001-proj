@@ -77,7 +77,7 @@ def green_talk(g):
                     else:
                         j['uncertainty'] = j['uncertainty'] - (diff*0.5) # ?????
                         i['uncertainty'] = i['uncertainty'] + (diff*0.25)
-    return g
+    #return g
 
 
 
@@ -102,7 +102,6 @@ blue_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4, 5:0.5, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.
 
 def red_talk(g, red_msg, move):
     msg = red_msg[move]
-    #print("red msg = " + str(msg))
     for i in g.vs:
         if i['colour'] == 'green':
             if i['following'] == True:
@@ -122,7 +121,7 @@ def red_talk(g, red_msg, move):
                         i['uncertainty'] = unc
                         if i['uncertainty'] < 0:
                             i['uncertainty'] = 0
-    return g
+    #return g
 
 def red_0(msg, green):
     lost = False
@@ -147,12 +146,6 @@ def blue_talk(g, blue_msg, move, blue_agent, active = False):
         return grey_talk(g, grey_msg, grey_agent)
     else:
         msg = blue_msg[move]
-        # energy_cost = 5*msg
-        #print("blue msg = " + str(msg) + ", energy cost = " + str(energy_cost))
-        # if blue_agent['energy'] - energy_cost < 0:
-        #     return g
-        # else:
-            # blue_agent['energy'] -= energy_cost
         for i in g.vs:
             if i['colour'] == 'green':
                 if i['opinion'] == 1:
@@ -163,7 +156,7 @@ def blue_talk(g, blue_msg, move, blue_agent, active = False):
                     i['uncertainty'] = blue_0(msg, i)
                     if i['uncertainty'] > 1.0:
                         i['uncertainty'] = 1.0
-        return g
+        #return g
 
 def blue_0(msg, green):
     return (green['uncertainty'] + 0.5*(msg)) # 0.1*
@@ -260,18 +253,19 @@ def main():
     clock = 0
     v, nv, winning = get_votes(g)
     print("BEFORE START OF SIMULATION\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
-    while clock < 10:
+    while clock < 50:
         #round(g)
         #minimax(g, True, 50, alpha, beta, eval_func_voting)
         green_talk(g)
-        print("hi")
-        red_move = minimax(g, True, 20, -float("Inf"), float("Inf"), eval_func_voting)
-        print("hello")
+        get_green_att()
+        red_move = minimax(g, True, 5, -float("Inf"), float("Inf"), eval_func_voting)
         red_talk(g, red_msg, red_move)
+        print("red msg: " + str(red_msg[red_move]))
 
-        blue_move = minimax(g, False, 20, -float("Inf"), float("Inf"), eval_func_voting) 
+        blue_move = minimax(g, False, 5, -float("Inf"), float("Inf"), eval_func_voting) 
         blue_talk(g, blue_msg, blue_move, blue_agent, False)
-        energy_cost = 5*blue_move
+        print("blue msg: " + str(blue_msg[blue_move]))
+        energy_cost = 5*blue_msg[blue_move]
         blue_agent['energy'] -= energy_cost
 
         v, nv, winning = get_votes(g)
@@ -309,7 +303,7 @@ def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):       #green_t
         best_move = moves[1]     # the msg dictionary start at '1'.... changed from '0'
         for move in moves:
             new_graph = copy.deepcopy(graph)
-            red_talk(graph, red_msg, move)
+            red_talk(new_graph, red_msg, move)
             hypothetical_value = minimax(new_graph, False, depth - 1, -float("Inf"), float("Inf"), eval_func)    #[0] - removed
             if hypothetical_value > best_value:
                 best_move = move
@@ -323,7 +317,7 @@ def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):       #green_t
         best_move = moves[1]        # the msg dictionary start at '1'.... changed from '0'
         for move in moves:
             new_graph = copy.deepcopy(graph)
-            blue_talk(graph, blue_msg, move, blue_agent) # need to add 'active' to here (grey agent), blue_talk() defualts to False.
+            blue_talk(new_graph, blue_msg, move, blue_agent) # need to add 'active' to here (grey agent), blue_talk() defualts to False.
             hypothetical_value = minimax(new_graph, True, depth - 1, -float("Inf"), float("Inf"), eval_func)    #[0] - removed  
             if hypothetical_value < best_value:
                 best_move = move
