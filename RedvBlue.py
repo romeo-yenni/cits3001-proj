@@ -96,9 +96,9 @@ def opinion_change(node):
         return 0
 
 # message dictionaries full of uncertainties
-red_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4, 5:0.5, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.0}               # red increases uncertainty (+ve)
+red_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4} #, 5:0.5, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.0}               # red increases uncertainty (+ve)
                                                                                                 # not sure if this is the right idea.
-blue_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4, 5:0.5, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.0}              # changed to same as red.....
+blue_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4} #, 5:0.5, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.0}              # changed to same as red.....
 
 def red_talk(g, red_msg, move):
     msg = red_msg[move]
@@ -306,7 +306,9 @@ def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):       #green_t
             red_talk(new_graph, red_msg, move)
             hypothetical_value = minimax(new_graph, False, depth - 1, -float("Inf"), float("Inf"), eval_func)    #[0] - removed
             if hypothetical_value > best_value:
+                best_value = hypothetical_value
                 best_move = move
+                print(best_value)
             alpha = max(alpha, best_value)
             if alpha >= beta:
                 break
@@ -320,7 +322,9 @@ def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):       #green_t
             blue_talk(new_graph, blue_msg, move, blue_agent) # need to add 'active' to here (grey agent), blue_talk() defualts to False.
             hypothetical_value = minimax(new_graph, True, depth - 1, -float("Inf"), float("Inf"), eval_func)    #[0] - removed  
             if hypothetical_value < best_value:
+                best_value = hypothetical_value
                 best_move = move
+                print(best_value)
             beta = min(beta, best_value)
             if alpha >= beta:
                 break
