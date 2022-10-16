@@ -253,7 +253,7 @@ def main():
     clock = 0
     v, nv, winning = get_votes(g)
     print("BEFORE START OF SIMULATION\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
-    while clock < 50:
+    while clock < 25:
         #round(g)
         #minimax(g, True, 50, alpha, beta, eval_func_voting)
         green_talk(g)
@@ -261,6 +261,13 @@ def main():
         red_move = minimax(g, True, 5, -float("Inf"), float("Inf"), eval_func_voting)
         red_talk(g, red_msg, red_move)
         print("red msg: " + str(red_msg[red_move]))
+
+        #print(blue_msg)
+        #blue_move = int(input("Select your move 1-5:\n"))
+        #blue_talk(g, blue_msg, blue_move, blue_agent, False)
+        #print("blue msg: " + str(blue_msg[blue_move]))
+        #energy_cost = 5*blue_msg[blue_move]
+        #blue_agent['energy'] -= energy_cost
 
         blue_move = minimax(g, False, 5, -float("Inf"), float("Inf"), eval_func_voting) 
         blue_talk(g, blue_msg, blue_move, blue_agent, False)
@@ -295,7 +302,7 @@ def eval_func_voting(graph):
 
 #a function to run minimax on a given graph
 def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):       #green_talk needs to go in here at some point, currently just plays red_talk() then blue_talk()
-    if blue_loss(blue_agent) or depth == 0:
+    if depth == 0: # blue_loss(blue_agent) or 
         return eval_func(graph)
     if is_maximizing:
         best_value = -float("Inf")
@@ -308,7 +315,7 @@ def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):       #green_t
             if hypothetical_value > best_value:
                 best_value = hypothetical_value
                 best_move = move
-                print(best_value)
+                #print(best_value)
             alpha = max(alpha, best_value)
             if alpha >= beta:
                 break
@@ -324,7 +331,7 @@ def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):       #green_t
             if hypothetical_value < best_value:
                 best_value = hypothetical_value
                 best_move = move
-                print(best_value)
+                #print(best_value)
             beta = min(beta, best_value)
             if alpha >= beta:
                 break
