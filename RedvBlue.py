@@ -3,8 +3,8 @@ import random
 import copy
 
 def user_setup():
-    play = input("Would you like to play(1) or observe(2)?\n")
-    num_greens = int(input("How many Greens are in this game?\n"))
+    play = int(input("Would you like to play(1) or observe(2)?\n"))
+    num_greens = int(input("How many Greens are in this game(>8)?\n"))
     num_edges = 4*num_greens
     uncertainty_dist = int(input("Would you like a tight(1) or broad(2) distribution of uncertainty?\n"))
     set_loyalty = int(input("How loyal should Grey agents be 1-10?\n"))
@@ -281,24 +281,26 @@ def main():
         red_move = minimax(g, True, 5, -float("Inf"), float("Inf"), eval_func_voting, blue_agent)
         red_talk(g, red_msg, red_move)
         print("red msg: " + str(red_msg[red_move]))
+        
+        if play == 1:
+            print(blue_msg)
+            blue_move = int(input("Select your message 1-5, or 6 for Grey Agent:\n"))
+            if blue_move == 6:
+                blue_talk(g, blue_msg, blue_move, blue_agent, True)
+            if blue_move > 0 and blue_move < 6:
+                blue_talk(g, blue_msg, blue_move, blue_agent, False)
+            else:
+                print("The move you have entered is not valid! Game Over!")
+            print("blue msg: " + str(blue_msg[blue_move]))
+            energy_cost = 5*blue_msg[blue_move]
+            blue_agent['energy'] -= energy_cost
 
-        #print(blue_msg)
-        #blue_move = int(input("Select your message 1-5, or 6 for Grey Agent:\n"))
-        #if blue_move == 6:
-        #    blue_talk(g, blue_msg, blue_move, blue_agent, True)
-        #if blue_move > 0 and blue_move < 6:
-        #    blue_talk(g, blue_msg, blue_move, blue_agent, False)
-        #else:
-        #    print("The move you have entered is not valid! Game Over!")
-        #print("blue msg: " + str(blue_msg[blue_move]))
-        #energy_cost = 5*blue_msg[blue_move]
-        #blue_agent['energy'] -= energy_cost
-
-        blue_move = minimax(g, False, 5, -float("Inf"), float("Inf"), eval_func_voting, blue_agent) 
-        blue_talk(g, blue_msg, blue_move, blue_agent, False)
-        print("blue msg: " + str(blue_msg[blue_move]))
-        energy_cost = 5*blue_msg[blue_move]
-        blue_agent['energy'] -= energy_cost
+        if play == 2:
+            blue_move = minimax(g, False, 5, -float("Inf"), float("Inf"), eval_func_voting, blue_agent) 
+            blue_talk(g, blue_msg, blue_move, blue_agent, False)
+            print("blue msg: " + str(blue_msg[blue_move]))
+            energy_cost = 5*blue_msg[blue_move]
+            blue_agent['energy'] -= energy_cost
 
         v, nv, winning = get_votes(g)
         print("Round " + str(clock) + ":\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers(g)) + " followers left\n")
