@@ -4,11 +4,12 @@ import copy
 
 def user_setup():
     play = int(input("Would you like to play(1) or observe(2)?\n"))
+    turns = int(input("How many turns would you like to play?\n"))
     num_greens = int(input("How many Greens are in this game(>8)?\n"))
     num_edges = 4*num_greens
     uncertainty_dist = int(input("Would you like a tight(1) or broad(2) distribution of uncertainty?\n"))
     set_loyalty = int(input("How loyal should Grey agents be 1-10?\n"))
-    return play, num_greens, num_edges, uncertainty_dist, set_loyalty
+    return play, turns, num_greens, num_edges, uncertainty_dist, set_loyalty
 
 num_greens = 15
 
@@ -269,13 +270,13 @@ def get_green_att(g):
             print("id: " + str(i.index) + ", colour: " + i['colour'] + ", opinion: " + str(i['opinion']) + ", uncertainty: " + str(i['uncertainty']) + ", following: " + str(i['following']))
 
 def main():
-    play, num_greens, num_edges, uncertainty_dist, set_loyalty = user_setup()
+    play, turns, num_greens, num_edges, uncertainty_dist, set_loyalty = user_setup()
     g, red_agent, blue_agent, grey_agent = generate_structure(num_greens, num_edges)
     g = generate_graph(g, uncertainty_dist)
     clock = 0
     v, nv, winning = get_votes(g)
     print("BEFORE START OF SIMULATION\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers(g)) + " followers left\n")
-    while clock < 25:
+    while clock < turns:
         green_talk(g)
         get_green_att(g)
         red_move = minimax(g, True, 5, -float("Inf"), float("Inf"), eval_func_voting, blue_agent)
