@@ -3,36 +3,39 @@ import random
 import copy
 
 def user_setup():
-    play = input("Would you like to play(1) or observe(2)?\n--> ")
-    num_greens = int(input("How many Greens are in this game?\n--> "))
-    uncertainty_dist = input("Would you like a tight(1) or broad(2) distribution of uncertainty?")
-    set_loyalty = input("How loyal should Grey agents be 1-10?")
-    return play, num_greens, uncertainty_dist, set_loyalty
+    play = input("Would you like to play(1) or observe(2)?\n")
+    num_greens = int(input("How many Greens are in this game?\n"))
+    num_edges = 4*num_greens
+    uncertainty_dist = int(input("Would you like a tight(1) or broad(2) distribution of uncertainty?\n"))
+    set_loyalty = int(input("How loyal should Grey agents be 1-10?\n"))
+    return play, num_greens, num_edges, uncertainty_dist, set_loyalty
 
-num_greens = 20
-num_edges = 4*num_greens
+num_greens = 15
 
-g = ig.Graph.Erdos_Renyi(n=num_greens, m=num_edges) # random graph
+def generate_structure(num_greens, num_edges):  
+    g = ig.Graph.Erdos_Renyi(n=num_greens, m=num_edges) # random graph
 
-g.add_vertices(3)
+    g.add_vertices(3)
 
-g.vs[-3]['colour'] = 'grey'
+    g.vs[-3]['colour'] = 'grey'
 
-g.vs[-2]['colour'] = 'red'
+    g.vs[-2]['colour'] = 'red'
                                     # grey arent connected to any green nodes currently.... might not need to be
-g.vs[-1]['colour'] = 'blue'
+    g.vs[-1]['colour'] = 'blue'
 
-red_agent = g.vs[-2]
+    red_agent = g.vs[-2]
                                     # varibles to access either agent        
-blue_agent = g.vs[-1]
+    blue_agent = g.vs[-1]
 
-grey_agent = g.vs[-3]
+    grey_agent = g.vs[-3]
 
-for i in range(len(g.vs)-3):
-    g.vs[i]['colour'] = 'green'
+    for i in range(len(g.vs)-3):
+        g.vs[i]['colour'] = 'green'
+    
+    return g, red_agent, blue_agent, grey_agent
 
 # initialising attributes
-def generate_graph(uncertainty_dist):
+def generate_graph(g, uncertainty_dist):
     if uncertainty_dist == 2:
         for i in g.vs:
             if i['colour'] == 'green':
@@ -160,7 +163,7 @@ def red_1(msg, green):
 
 def blue_talk(g, blue_msg, move, blue_agent, active = False):
     if active == True:
-        return grey_talk(g, grey_msg, grey_agent)
+        return grey_talk(g, grey_msg)
     else:
         msg = blue_msg[move]
         for i in g.vs:
@@ -251,7 +254,7 @@ def blue_loss(blue_agent):
         print("GAME OVER, blue agent ran out of energy.")
         return True
 
-def red_followers():
+def red_followers(g):
     total = 0
     for i in g.vs:
         if i['colour'] == 'green':
@@ -260,22 +263,22 @@ def red_followers():
     return total
 
 # debugging
-def get_green_att():
+def get_green_att(g):
     for i in g.vs:
         if i['colour'] == 'green':
             print("id: " + str(i.index) + ", colour: " + i['colour'] + ", opinion: " + str(i['opinion']) + ", uncertainty: " + str(i['uncertainty']) + ", following: " + str(i['following']))
 
 def main():
-    #user_setup()
-    uncertainty_dist = 1
-    generate_graph(uncertainty_dist)
+    play, num_greens, num_edges, uncertainty_dist, set_loyalty = user_setup()
+    g, red_agent, blue_agent, grey_agent = generate_structure(num_greens, num_edges)
+    g = generate_graph(g, uncertainty_dist)
     clock = 0
     v, nv, winning = get_votes(g)
-    print("BEFORE START OF SIMULATION\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
+    print("BEFORE START OF SIMULATION\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers(g)) + " followers left\n")
     while clock < 25:
         green_talk(g)
-        get_green_att()
-        red_move = minimax(g, True, 5, -float("Inf"), float("Inf"), eval_func_voting)
+        get_green_att(g)
+        red_move = minimax(g, True, 5, -float("Inf"), float("Inf"), eval_func_voting, blue_agent)
         red_talk(g, red_msg, red_move)
         print("red msg: " + str(red_msg[red_move]))
 
@@ -291,14 +294,14 @@ def main():
         #energy_cost = 5*blue_msg[blue_move]
         #blue_agent['energy'] -= energy_cost
 
-        blue_move = minimax(g, False, 5, -float("Inf"), float("Inf"), eval_func_voting) 
+        blue_move = minimax(g, False, 5, -float("Inf"), float("Inf"), eval_func_voting, blue_agent) 
         blue_talk(g, blue_msg, blue_move, blue_agent, False)
         print("blue msg: " + str(blue_msg[blue_move]))
         energy_cost = 5*blue_msg[blue_move]
         blue_agent['energy'] -= energy_cost
 
         v, nv, winning = get_votes(g)
-        print("Round " + str(clock) + ":\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
+        print("Round " + str(clock) + ":\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers(g)) + " followers left\n")
         clock += 1
         if blue_loss(blue_agent):
             winning = 'red'
@@ -307,25 +310,21 @@ def main():
     print(winning + " agent won")
 
 #A better evaluation function would be to focus on combatting the uncertainty red is aiming to introduce, as maximum uncertainty is really their win condition.
-def eval_func_uncertainty(graph):
-    if blue_loss(blue_agent):
-        return float("Inf")
-    if red_followers(red_agent) == 0:
-        return -float("Inf")
+
 
 #an evaluation function that returns a value determining who is winning in a given state of the graph based on the difference in voting
-def eval_func_voting(graph):
+def eval_func_voting(graph, blue_agent):
     if blue_loss(blue_agent):
         return float("Inf")
-    if red_followers() == 0:
+    if red_followers(graph) == 0:
         return -float("Inf")
     v, nv, winning = get_votes(graph)
     return nv - v
 
 #a function to run minimax on a given graph
-def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):       #green_talk needs to go in here at some point, currently just plays red_talk() then blue_talk()
+def minimax(graph, is_maximizing, depth, alpha, beta, eval_func, blue_agent):       #green_talk needs to go in here at some point, currently just plays red_talk() then blue_talk()
     if depth == 0: # blue_loss(blue_agent) or 
-        return eval_func(graph)
+        return eval_func(graph, blue_agent)
     if is_maximizing:
         best_value = -float("Inf")
         moves = red_msg
@@ -333,7 +332,7 @@ def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):       #green_t
         for move in moves:
             new_graph = copy.deepcopy(graph)
             red_talk(new_graph, red_msg, move)
-            hypothetical_value = minimax(new_graph, False, depth - 1, -float("Inf"), float("Inf"), eval_func)    #[0] - removed
+            hypothetical_value = minimax(new_graph, False, depth - 1, -float("Inf"), float("Inf"), eval_func, blue_agent)    #[0] - removed
             if hypothetical_value > best_value:
                 best_value = hypothetical_value
                 best_move = move
@@ -349,7 +348,7 @@ def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):       #green_t
         for move in moves:
             new_graph = copy.deepcopy(graph)
             blue_talk(new_graph, blue_msg, move, blue_agent) # need to add 'active' to here (grey agent), blue_talk() defualts to False.
-            hypothetical_value = minimax(new_graph, True, depth - 1, -float("Inf"), float("Inf"), eval_func)    #[0] - removed  
+            hypothetical_value = minimax(new_graph, True, depth - 1, -float("Inf"), float("Inf"), eval_func, blue_agent)    #[0] - removed  
             if hypothetical_value < best_value:
                 best_value = hypothetical_value
                 best_move = move
@@ -359,7 +358,7 @@ def minimax(graph, is_maximizing, depth, alpha, beta, eval_func):       #green_t
                 break
         return best_move
 
-def user_round(g, clock, turn_limit, alpha, beta):
+#def user_round(g, clock, turn_limit, alpha, beta, blue):
     while not clock > turn_limit and not blue_loss(blue_agent):
         printGraph(g)
         moves = blue_msg
@@ -382,7 +381,7 @@ def user_round(g, clock, turn_limit, alpha, beta):
                 print("Computer chose: ", result)
                 red_talk(g, red_msg, result)
 
-def ai_round(g, clock, turn_limit, alpha, beta):
+#def ai_round(g, clock, turn_limit, alpha, beta):
     while not clock > turn_limit and not blue_loss(blue_agent):                 # Condence to while_not_over()?
         printGraph(g)
         blue_result = minimax(g, False, 50, -float("Inf"), float("Inf"), eval_func_voting)   
