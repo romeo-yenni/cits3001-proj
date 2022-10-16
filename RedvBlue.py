@@ -96,9 +96,9 @@ def opinion_change(node):
         return 0
 
 # message dictionaries full of uncertainties
-red_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4} #, 5:0.5, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.0}               # red increases uncertainty (+ve)
+red_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4, 5:0.5} #, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.0}               # red increases uncertainty (+ve)
                                                                                                 # not sure if this is the right idea.
-blue_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4} #, 5:0.5, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.0}              # changed to same as red.....
+blue_msg = {1:0.1, 2:0.2, 3:0.3, 4:0.4, 5:0.5} #, 6:0.6, 7:0.7, 8:0.8, 9:0.9, 10:1.0}              # changed to same as red.....
 
 def red_talk(g, red_msg, move):
     msg = red_msg[move]
@@ -263,8 +263,13 @@ def main():
         print("red msg: " + str(red_msg[red_move]))
 
         #print(blue_msg)
-        #blue_move = int(input("Select your move 1-5:\n"))
-        #blue_talk(g, blue_msg, blue_move, blue_agent, False)
+        #blue_move = int(input("Select your message 1-5, or 6 for Grey Agent:\n"))
+        #if blue_move == 6:
+        #    blue_talk(g, blue_msg, blue_move, blue_agent, True)
+        #if blue_move > 0 and blue_move < 6:
+        #    blue_talk(g, blue_msg, blue_move, blue_agent, False)
+        #else:
+        #    print("The move you have entered is not valid! Game Over!")
         #print("blue msg: " + str(blue_msg[blue_move]))
         #energy_cost = 5*blue_msg[blue_move]
         #blue_agent['energy'] -= energy_cost
