@@ -2,11 +2,12 @@ import igraph as ig
 import random
 import copy
 
-def user():
-    play = input("Type 1 to play, or 2 to observe...\n--> ")
-    if play == "1":
-        total_grn = int(input("How many greens in this simulation?\n--> "))
-        return total_grn
+def user_setup():
+    play = input("Would you like to play(1) or observe(2)?\n--> ")
+    num_greens = int(input("How many Greens are in this game?\n--> "))
+    uncertainty_dist = input("Would you like a tight(1) or broad(2) distribution of uncertainty?")
+    set_loyalty = input("How loyal should Grey agents be 1-10?")
+    return play, num_greens, uncertainty_dist, set_loyalty
 
 num_greens = 20
 num_edges = 4*num_greens
@@ -254,8 +255,6 @@ def main():
     v, nv, winning = get_votes(g)
     print("BEFORE START OF SIMULATION\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
     while clock < 25:
-        #round(g)
-        #minimax(g, True, 50, alpha, beta, eval_func_voting)
         green_talk(g)
         get_green_att()
         red_move = minimax(g, True, 5, -float("Inf"), float("Inf"), eval_func_voting)
