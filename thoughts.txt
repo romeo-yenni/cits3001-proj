@@ -85,10 +85,10 @@ Perform Various Simulations  for the following set of questions.
 4.	Plot distribution of uncertainties for each of the above questions. 
 
 5.	In order for the Red agent to win (i.e., a higher number of green agents with the opinion “not vote”, and an uncertainty less than 0 (which means they are pretty certain about their choice)), what is the best strategy? 
-a.	Discuss and show with simulation results how many rounds the red agent needs in order to win. 
+    a.	Discuss and show with simulation results how many rounds the red agent needs in order to win. 
 6.	In order for the Blue agent to win (i.e., a higher number of green agents with an opinion “vote”, and an uncertainty less than 0 (which means they are pretty certain about their choice)), what is the best strategy? [
-a.	Discuss and show with simulation results how many rounds the blue agent needs in order to win. 
-b.	What impact did grey agents have on the simulation? Explain how did you test the impact of grey agents?
+    a.	Discuss and show with simulation results how many rounds the blue agent needs in order to win. 
+    b.	What impact did grey agents have on the simulation? Explain how did you test the impact of grey agents?
 Please note that for answering questions use your own mental model of how you implemented uncertainties if they are different from the specs
 
 Performance of Agent when playing with a human
