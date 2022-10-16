@@ -32,18 +32,34 @@ for i in range(len(g.vs)-3):
     g.vs[i]['colour'] = 'green'
 
 # initialising attributes
-for i in g.vs:
-    if i['colour'] == 'green':
-        i['opinion'] = random.choice([0, 1])
-        i['uncertainty'] = random.uniform(0.0, 1.0)
-        i['following'] = True                                       # every green starts off following red. 
-    if i['colour'] == 'blue':
-        i['energy'] = 100
-    if i['colour'] == 'red':
-        i['followers'] = num_greens             # might just get rid of this
-    if i['colour'] == 'grey':
-        i['count'] = 0
-        i['loyalty'] = random.uniform(-1.0, 1.0)
+def generate_graph(uncertainty_dist):
+    if uncertainty_dist == 2:
+        for i in g.vs:
+            if i['colour'] == 'green':
+                i['opinion'] = random.choice([0, 1])
+                i['uncertainty'] = random.uniform(0.0, 1.0)
+                i['following'] = True                                       # every green starts off following red. 
+            if i['colour'] == 'blue':
+                i['energy'] = 100
+            if i['colour'] == 'red':
+                i['followers'] = num_greens             # might just get rid of this
+            if i['colour'] == 'grey':
+                i['count'] = 0
+                i['loyalty'] = random.uniform(-1.0, 1.0)
+    if uncertainty_dist == 1:
+        for i in g.vs:
+            if i['colour'] == 'green':
+                i['opinion'] = random.choice([0, 1])
+                i['uncertainty'] = random.normalvariate(0.5, 0.2)
+                i['following'] = True                                       # every green starts off following red. 
+            if i['colour'] == 'blue':
+                i['energy'] = 100
+            if i['colour'] == 'red':
+                i['followers'] = num_greens             # might just get rid of this
+            if i['colour'] == 'grey':
+                i['count'] = 0
+                i['loyalty'] = random.uniform(-1.0, 1.0)
+    return g
 
 def pick_neighbour(i):
     return random.choice(i.neighbors())
@@ -250,7 +266,9 @@ def get_green_att():
             print("id: " + str(i.index) + ", colour: " + i['colour'] + ", opinion: " + str(i['opinion']) + ", uncertainty: " + str(i['uncertainty']) + ", following: " + str(i['following']))
 
 def main():
-    #play = user()
+    #user_setup()
+    uncertainty_dist = 1
+    generate_graph(uncertainty_dist)
     clock = 0
     v, nv, winning = get_votes(g)
     print("BEFORE START OF SIMULATION\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers()) + " followers left\n")
