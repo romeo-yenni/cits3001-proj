@@ -32,6 +32,11 @@ def generate_structure(num_greens, num_edges):
 
     for i in range(len(g.vs)-3):
         g.vs[i]['colour'] = 'green'
+
+        
+    color_dict = {"green": "green", "red": "red", "blue": "blue", "grey": "grey"}
+
+    ig.plot(g, vertex_color=[color_dict[colour] for colour in g.vs["colour"]])
     
     return g, red_agent, blue_agent, grey_agent
 
@@ -162,9 +167,9 @@ def red_1(msg, green):
     else:
         return (green['uncertainty'] + 0.5*(msg)), lost # 0.1*
 
-def blue_talk(g, blue_msg, move, blue_agent, active = False):
+def blue_talk(g, blue_msg, move, blue_agent, grey_agent, active = False):
     if active == True:
-        return grey_talk(g, grey_msg)
+        return grey_talk(g, grey_msg, grey_agent)
     else:
         msg = blue_msg[move]
         for i in g.vs:
@@ -187,7 +192,7 @@ def blue_1(msg, green):
 
 
 # similar implementation to R/B msg, with only one potent msg
-grey_msg = {1:1.0}
+grey_msg = {1:0.5}
 
 # determines if the grey agent is loyal, and applies the appropriate msg, at no cost
 def grey_talk(g, grey_msg, grey_agent):
@@ -208,12 +213,12 @@ def grey_talk(g, grey_msg, grey_agent):
                 if i['colour'] == 'green':
                     if i['following'] == True:
                         if i['opinion'] == 1:
-                            unc, lost = red_1(grey_msg[1], i)
+                            unc, lost = red_1(0.5, i)
                             i['uncertainty'] = unc
                             if i['uncertainty'] > 1.0:
                                 i['uncertainty'] = 1.0
                         else:
-                            unc, lost = red_0(grey_msg, i)
+                            unc, lost = red_0(0.5, i)
                             i['uncertainty'] = unc
                             if i['uncertainty'] < 0:
                                 i['uncertainty'] = 0
@@ -279,7 +284,7 @@ def main():
     while clock < turns:
         green_talk(g)
         get_green_att(g)
-        red_move = minimax(g, True, 5, -float("Inf"), float("Inf"), eval_func_voting, blue_agent)
+        red_move = minimax(g, True, 5, -float("Inf"), float("Inf"), eval_func_voting, blue_agent, grey_agent)
         red_talk(g, red_msg, red_move)
         print("red msg: " + str(red_msg[red_move]))
         
@@ -287,18 +292,22 @@ def main():
             print(blue_msg)
             blue_move = int(input("Select your message 1-5, or 6 for Grey Agent:\n"))
             if blue_move == 6:
-                blue_talk(g, blue_msg, blue_move, blue_agent, True)
-            if blue_move > 0 and blue_move < 6:
-                blue_talk(g, blue_msg, blue_move, blue_agent, False)
+                blue_talk(g, blue_msg, blue_move, blue_agent, grey_agent, True)
+                print("grey msg: " + str(1.0))
+            elif blue_move > 0 and blue_move < 6:
+                blue_talk(g, blue_msg, blue_move, blue_agent, grey_agent, False)
+                print("blue msg: " + str(blue_msg[blue_move]))
+                energy_cost = 5*blue_msg[blue_move]
+                blue_agent['energy'] -= energy_cost
             else:
                 print("The move you have entered is not valid! Game Over!")
-            print("blue msg: " + str(blue_msg[blue_move]))
-            energy_cost = 5*blue_msg[blue_move]
-            blue_agent['energy'] -= energy_cost
+            #print("blue msg: " + str(blue_msg[blue_move]))
+            #energy_cost = 5*blue_msg[blue_move]
+            #blue_agent['energy'] -= energy_cost
 
         if play == 2:
-            blue_move = minimax(g, False, 5, -float("Inf"), float("Inf"), eval_func_voting, blue_agent) 
-            blue_talk(g, blue_msg, blue_move, blue_agent, False)
+            blue_move = minimax(g, False, 5, -float("Inf"), float("Inf"), eval_func_voting, blue_agent, grey_agent) 
+            blue_talk(g, blue_msg, blue_move, blue_agent, grey_agent, False)
             print("blue msg: " + str(blue_msg[blue_move]))
             energy_cost = 5*blue_msg[blue_move]
             blue_agent['energy'] -= energy_cost
@@ -325,7 +334,7 @@ def eval_func_voting(graph, blue_agent):
     return nv - v
 
 #a function to run minimax on a given graph
-def minimax(graph, is_maximizing, depth, alpha, beta, eval_func, blue_agent):       #green_talk needs to go in here at some point, currently just plays red_talk() then blue_talk()
+def minimax(graph, is_maximizing, depth, alpha, beta, eval_func, blue_agent, grey_agent):       #green_talk needs to go in here at some point, currently just plays red_talk() then blue_talk()
     if depth == 0: # blue_loss(blue_agent) or 
         return eval_func(graph, blue_agent)
     if is_maximizing:
@@ -335,7 +344,7 @@ def minimax(graph, is_maximizing, depth, alpha, beta, eval_func, blue_agent):   
         for move in moves:
             new_graph = copy.deepcopy(graph)
             red_talk(new_graph, red_msg, move)
-            hypothetical_value = minimax(new_graph, False, depth - 1, -float("Inf"), float("Inf"), eval_func, blue_agent)    #[0] - removed
+            hypothetical_value = minimax(new_graph, False, depth - 1, -float("Inf"), float("Inf"), eval_func, blue_agent, grey_agent)    #[0] - removed
             if hypothetical_value > best_value:
                 best_value = hypothetical_value
                 best_move = move
@@ -350,8 +359,8 @@ def minimax(graph, is_maximizing, depth, alpha, beta, eval_func, blue_agent):   
         best_move = moves[1]        # the msg dictionary start at '1'.... changed from '0'
         for move in moves:
             new_graph = copy.deepcopy(graph)
-            blue_talk(new_graph, blue_msg, move, blue_agent) # need to add 'active' to here (grey agent), blue_talk() defualts to False.
-            hypothetical_value = minimax(new_graph, True, depth - 1, -float("Inf"), float("Inf"), eval_func, blue_agent)    #[0] - removed  
+            blue_talk(new_graph, blue_msg, move, blue_agent, grey_agent) # need to add 'active' to here (grey agent), blue_talk() defualts to False.
+            hypothetical_value = minimax(new_graph, True, depth - 1, -float("Inf"), float("Inf"), eval_func, blue_agent, grey_agent)    #[0] - removed  
             if hypothetical_value < best_value:
                 best_value = hypothetical_value
                 best_move = move
@@ -400,6 +409,3 @@ main()
 
 #printGraph(g)
 
-color_dict = {"green": "green", "red": "red", "blue": "blue", "grey": "grey"}
-
-# ig.plot(g, vertex_color=[color_dict[colour] for colour in g.vs["colour"]])
