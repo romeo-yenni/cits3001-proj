@@ -1,3 +1,6 @@
+# HARRY ADLER (21968333)
+# NICOLA GOPCEVIC (22982458) 
+
 import igraph as ig
 import random
 import copy
@@ -10,8 +13,6 @@ def user_setup():
     uncertainty_dist = int(input("Would you like a tight(1) or broad(2) distribution of uncertainty?\n"))
     set_loyalty = int(input("How loyal should Grey agents be 1-10?\n"))
     return play, turns, num_greens, num_edges, uncertainty_dist, set_loyalty
-
-num_greens = 15
 
 def generate_structure(num_greens, num_edges):  
     g = ig.Graph.Erdos_Renyi(n=num_greens, m=num_edges) # random graph
@@ -335,7 +336,7 @@ def eval_func_voting(graph, blue_agent):
 
 #a function to run minimax on a given graph
 def minimax(graph, is_maximizing, depth, alpha, beta, eval_func, blue_agent, grey_agent):       #green_talk needs to go in here at some point, currently just plays red_talk() then blue_talk()
-    if depth == 0: # blue_loss(blue_agent) or 
+    if depth == 0 or blue_loss(blue_agent):
         return eval_func(graph, blue_agent)
     if is_maximizing:
         best_value = -float("Inf")
@@ -369,43 +370,4 @@ def minimax(graph, is_maximizing, depth, alpha, beta, eval_func, blue_agent, gre
             if alpha >= beta:
                 break
         return best_move
-
-#def user_round(g, clock, turn_limit, alpha, beta, blue):
-    while not clock > turn_limit and not blue_loss(blue_agent):
-        printGraph(g)
-        moves = blue_msg
-        print("Available moves: ", moves)
-        choice = 100
-        good_move = False
-        while not good_move:
-            choice = input("Select a move:\n")
-            try:
-                move = int(choice)
-            except ValueError:
-                continue
-            if move in moves:
-                good_move = True
-            blue_talk(g, blue_msg, choice, blue_agent) # need to add 'active' to here (grey agent), blue_talk() defualts to False.
-                                                      # check whether lue_talk needs to take move or choice...
-           
-            if not clock > turn_limit and not blue_loss(blue_agent):
-                result = minimax(g, True, 50, -float("Inf"), float("Inf"), eval_func_voting)  
-                print("Computer chose: ", result)
-                red_talk(g, red_msg, result)
-
-#def ai_round(g, clock, turn_limit, alpha, beta):
-    while not clock > turn_limit and not blue_loss(blue_agent):                 # Condence to while_not_over()?
-        printGraph(g)
-        blue_result = minimax(g, False, 50, -float("Inf"), float("Inf"), eval_func_voting)   
-        #blue_talk(g, blue_msg, choice, blue_agent)          # need to change up blue talk so its a choice and not random
-        
-        if not clock > turn_limit and not blue_loss(blue_agent):                    
-            red_result = minimax(g, True, 50, -float("Inf"), float("Inf"), eval_func_voting)   
-            #red_talk(g, red_agent, result, red_agent)
-
-# No consideration of the costs of their actions at the moment, next step to add this
-
-main()
-
-#printGraph(g)
 
