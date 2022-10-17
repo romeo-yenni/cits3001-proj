@@ -42,7 +42,7 @@ def generate_structure(num_greens, num_edges):
     return g, red_agent, blue_agent, grey_agent
 
 # initialising attributes
-def generate_graph(g, uncertainty_dist):
+def generate_graph(g, uncertainty_dist, num_greens):
     if uncertainty_dist == 2:
         for i in g.vs:
             if i['colour'] == 'green':
@@ -278,7 +278,7 @@ def get_green_att(g):
 def main():
     play, turns, num_greens, num_edges, uncertainty_dist, set_loyalty = user_setup()
     g, red_agent, blue_agent, grey_agent = generate_structure(num_greens, num_edges)
-    g = generate_graph(g, uncertainty_dist)
+    g = generate_graph(g, uncertainty_dist, num_greens)
     clock = 0
     v, nv, winning = get_votes(g)
     print("BEFORE START OF SIMULATION\n" + winning + " is winning\n" + "blue has " + str(v) + " votes and red had " + str(nv) + " votes\n" + "blue has " + str(blue_agent['energy']) + " energy left and red has " + str(red_followers(g)) + " followers left\n")
@@ -370,4 +370,7 @@ def minimax(graph, is_maximizing, depth, alpha, beta, eval_func, blue_agent, gre
             if alpha >= beta:
                 break
         return best_move
+
+main()
+
 
