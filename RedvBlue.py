@@ -152,7 +152,7 @@ def red_talk(g, red_msg, move):
 def red_0(msg, green):
     lost = False
     diff = msg + green['uncertainty']
-    if diff > 1.5:                      # need to tweak this value
+    if diff > 1.3:                      # need to tweak this value
         lost = True
         return green['uncertainty'], lost
     else:
